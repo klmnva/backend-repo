@@ -7,7 +7,10 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['http://anupro.xyz', 'https://anupro.xyz', 'http://localhost:3000'],
+  credentials: true
+}));
 app.use(express.json());
 
 // Database configuration
@@ -16,15 +19,19 @@ const dbConfig = {
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || 'password',
   database: process.env.DB_NAME || 'appdb',
-  port: process.env.DB_PORT || 3306
+  port: process.env.DB_PORT || 3306,
+  connectionLimit: 10,
+  acquireTimeout: 60000,
+  timeout: 60000,
+  reconnect: true
 };
 
 let db;
 
-// Initialize database connection
+// Initialize database connection pool
 async function initDatabase() {
   try {
-    db = await mysql.createConnection(dbConfig);
+    db = mysql.createPool(dbConfig);
     console.log('Connected to MySQL database');
     
     // Create users table if it doesn't exist
